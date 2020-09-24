@@ -1,0 +1,73 @@
+////////////////////////////////////////////////////////////////////////////////
+// Main File:        intdate.c
+// This File:        sendsig.c
+// Other Files:      intdate.c, sendsig.c
+// Semester:         CS 354 Fall 2019
+//
+// Author:           Sage Livingstone
+// Email:            slivingstone@wisc.edu
+// CS Login:         sage
+//
+/////////////////////////// OTHER SOURCES OF HELP //////////////////////////////
+//                   fully acknowledge and credit all sources of help,
+//                   other than Instructors and TAs.
+//
+// Persons:          Identify persons by name, relationship to you, and email.
+//                   Describe in detail the the ideas and help they provided.
+//
+// Online sources:   avoid web searches to solve your problems, but if you do
+//                   search, be sure to include Web URLs and description of 
+//                   of any information you find.
+//////////////////////////// 80 columns wide ///////////////////////////////////
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <signal.h>
+#include <errno.h>
+
+
+int main(int argc, char* argv[])
+{
+    // Check for correct number of args
+    if(argc != 3) {
+        printf("Usage: <signal type> <pid>\n");
+        exit(1);
+    }
+
+    // Grab args and convert 
+    char* type = argv[1];
+    pid_t target_id = atoi(argv[2]);
+    int sig;
+
+    // Check that the signal arg is a valid option
+    if(!strcmp(type, "-i")) {
+        sig = SIGINT;
+    } else if (!strcmp(type, "-u")) {
+        sig = SIGUSR1;
+    } else {
+        printf("Invalid signal type: '%s' \n", type);
+        exit(1);
+    }
+
+    // Send signal and check errno for issues
+    if(kill(target_id, sig))
+    {
+        printf("Error sending signal #%d:\n", sig);
+        if (errno == EINVAL) {
+            printf(" > Invalid signal number\n");
+        } else if (errno == EPERM) {
+            printf(" > The process does not have permission to send the signal\n");
+        } else if (errno == ESRCH) {
+            printf(" > No process or process group could be found of the id: %d\n", target_id);
+        } else {
+            printf(" > Unexpected error\n");
+        }
+        exit(1);
+    }
+
+    return 0;
+}
+
+
